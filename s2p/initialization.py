@@ -136,6 +136,9 @@ def build_cfg(user_cfg):
         utm_zone = rpc_utils.utm_zone(cfg['images'][0]['rpcm'], x, y, w, h)
         epsg_code = geographiclib.epsg_code_from_utm_zone(utm_zone)
         cfg['out_crs'] = "epsg:{}".format(epsg_code)
+        if cfg['out_geoid']:
+            # Use the EGM96 geoid model for the output CRS if out_geoid is True
+            cfg['out_crs'] += "+5773"
     geographiclib.pyproj_crs(cfg['out_crs'])
 
     # get image ground sampling distance
@@ -308,6 +311,8 @@ def is_this_tile_useful(x, y, w, h, images_sizes):
     wat_msk = cfg['images'][0]['wat']
     mask = masking.image_tile_mask(x, y, w, h, roi_msk, cld_msk, wat_msk,
                                    images_sizes[0], cfg['border_margin'])
+    if not mask.any():
+        return False, None
     return True, mask
 
 
